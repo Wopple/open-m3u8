@@ -226,7 +226,7 @@ abstract class MediaPlaylistTagWriter extends ExtTagWriter {
     static class KeyWriter extends MediaPlaylistTagWriter {
         private final Map<String, AttributeWriter<EncryptionData>> HANDLERS = new HashMap<String, AttributeWriter<EncryptionData>>();
 
-        private TrackData mTrackData;
+        private EncryptionData mEncryptionData;
 
         {
             HANDLERS.put(Constants.METHOD, new AttributeWriter<EncryptionData>() {
@@ -304,14 +304,18 @@ abstract class MediaPlaylistTagWriter extends ExtTagWriter {
 
         @Override
         public void doWrite(TagWriter tagWriter, Playlist playlist, MediaPlaylist mediaPlaylist) throws IOException, ParseException {
-            if (mTrackData != null && mTrackData.hasEncryptionData()) {
-                writeAttributes(tagWriter, mTrackData.getEncryptionData(), HANDLERS);
-            }
+            writeAttributes(tagWriter, mEncryptionData, HANDLERS);
         }
 
         void writeTrackData(TagWriter tagWriter, Playlist playlist, TrackData trackData) throws IOException, ParseException {
-            mTrackData = trackData;
-            write(tagWriter, playlist);
+            if (trackData != null && trackData.hasEncryptionData()) {
+                final EncryptionData encryptionData = trackData.getEncryptionData();
+
+                if (!encryptionData.equals(mEncryptionData)) {
+                    mEncryptionData = encryptionData;
+                    write(tagWriter, playlist);
+                }
+            }
         }
     }
 }
