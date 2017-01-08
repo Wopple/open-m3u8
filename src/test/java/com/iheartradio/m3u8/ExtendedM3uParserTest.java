@@ -1,6 +1,7 @@
 package com.iheartradio.m3u8;
 
 import com.iheartradio.m3u8.data.MediaData;
+import com.iheartradio.m3u8.data.MediaPlaylist;
 import com.iheartradio.m3u8.data.MediaType;
 import com.iheartradio.m3u8.data.Playlist;
 import com.iheartradio.m3u8.data.StreamInfo;
@@ -91,13 +92,14 @@ public class ExtendedM3uParserTest {
                         "#EXTINF:120.0,title 1\n" +
                         absolute + "\n" +
                         "#EXTINF:100.0,title 2\n" +
+                        "#EXT-X-PROGRAM-DATE-TIME:2010-02-19T14:54:23.031+08:00\n" +
                         "\n" +
                         relative + "\n" +
                         "\n";
 
         final List<TrackData> expectedTracks = Arrays.asList(
                 new TrackData.Builder().withUri(absolute).withTrackInfo(new TrackInfo(120, "title 1")).build(),
-                new TrackData.Builder().withUri(relative).withTrackInfo(new TrackInfo(100, "title 2")).build());
+                new TrackData.Builder().withUri(relative).withTrackInfo(new TrackInfo(100, "title 2")).withProgramDateTime("2010-02-19T14:54:23.031+08:00").build());
 
         final InputStream inputStream = new ByteArrayInputStream(validData.getBytes("utf-8"));
         final Playlist playlist = new ExtendedM3uParser(inputStream, Encoding.UTF_8, ParsingMode.STRICT).parse();
@@ -142,6 +144,34 @@ public class ExtendedM3uParserTest {
 
             assertEquals(0, inputStream.available());
         }
+    }
+
+    @Test
+    public void testParseDiscontinuity() throws Exception {
+        final String absolute = "http://www.my.song/file1.mp3";
+        final String relative = "user1/file2.mp3";
+
+        final String validData =
+                "#EXTM3U\n" +
+                        "#EXT-X-VERSION:2\n" +
+                        "#EXT-X-TARGETDURATION:60\n" +
+                        "#EXT-X-MEDIA-SEQUENCE:10\n" +
+                        "#some comment\n" +
+                        "#EXTINF:120.0,title 1\n" +
+                        absolute + "\n" +
+                        "#EXT-X-DISCONTINUITY\n" +
+                        "#EXTINF:100.0,title 2\n" +
+                        "\n" +
+                        relative + "\n" +
+                        "\n";
+
+        final InputStream inputStream = new ByteArrayInputStream(validData.getBytes("utf-8"));
+        final MediaPlaylist mediaPlaylist = new ExtendedM3uParser(inputStream, Encoding.UTF_8, ParsingMode.STRICT).parse().getMediaPlaylist();
+
+        assertFalse(mediaPlaylist.getTracks().get(0).hasDiscontinuity());
+        assertTrue(mediaPlaylist.getTracks().get(1).hasDiscontinuity());
+        assertEquals(0, mediaPlaylist.getDiscontinuitySequenceNumber(0));
+        assertEquals(1, mediaPlaylist.getDiscontinuitySequenceNumber(1));
     }
 
     private static TrackData makeTrackData(String uri, float duration) {

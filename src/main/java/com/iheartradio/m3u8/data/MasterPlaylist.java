@@ -47,7 +47,7 @@ public class MasterPlaylist {
     }
 
     public Builder buildUpon() {
-        return new Builder(mPlaylists, mMediaData);
+        return new Builder(mPlaylists, mIFramePlaylists, mMediaData, mUnknownTags);
     }
     
     @Override
@@ -91,6 +91,13 @@ public class MasterPlaylist {
         private StartData mStartData;
 
         public Builder() {
+        }
+
+        private Builder(List<PlaylistData> playlists, List<IFrameStreamInfo> iFramePlaylists, List<MediaData> mediaData, List<String> unknownTags) {
+            mPlaylists = playlists;
+            mIFramePlaylists = iFramePlaylists;
+            mMediaData = mediaData;
+            mUnknownTags = unknownTags;
         }
 
         private Builder(List<PlaylistData> playlists, List<MediaData> mediaData) {

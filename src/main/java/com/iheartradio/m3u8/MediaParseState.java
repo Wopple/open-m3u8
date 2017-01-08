@@ -14,7 +14,7 @@ class MediaParseState implements PlaylistParseState<MediaPlaylist> {
     private List<String> mUnknownTags;
     private StartData mStartData;
 
-    public final List<TrackData> tracks = new ArrayList<TrackData>();
+    public final List<TrackData> tracks = new ArrayList<>();
 
     public Integer targetDuration;
     public Integer mediaSequenceNumber;
@@ -22,7 +22,9 @@ class MediaParseState implements PlaylistParseState<MediaPlaylist> {
     public PlaylistType playlistType;
     public TrackInfo trackInfo;
     public EncryptionData encryptionData;
+    public String programDateTime;
     public boolean endOfList;
+    public boolean hasDiscontinuity;
 
     @Override
     public PlaylistParseState<MediaPlaylist> setUnknownTags(final List<String> unknownTags) {
@@ -44,6 +46,7 @@ class MediaParseState implements PlaylistParseState<MediaPlaylist> {
                 .withTargetDuration(targetDuration == null ? maximumDuration(tracks, 0) : targetDuration)
                 .withIsIframesOnly(isIframesOnly)
                 .withStartData(mStartData)
+                .withIsOngoing(!endOfList)
                 .withMediaSequenceNumber(mediaSequenceNumber == null ? 0 : mediaSequenceNumber)
                 .withPlaylistType(playlistType)
                 .build();

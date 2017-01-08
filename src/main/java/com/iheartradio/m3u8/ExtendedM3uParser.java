@@ -21,6 +21,7 @@ class ExtendedM3uParser extends BaseM3uParser {
                 ExtLineParser.EXT_X_VERSION_HANDLER,
                 ExtLineParser.EXT_X_START,
                 MediaPlaylistLineParser.EXT_X_PLAYLIST_TYPE,
+                MediaPlaylistLineParser.EXT_X_PROGRAM_DATE_TIME,
                 MediaPlaylistLineParser.EXT_X_KEY,
                 MediaPlaylistLineParser.EXT_X_TARGETDURATION,
                 MediaPlaylistLineParser.EXT_X_MEDIA_SEQUENCE,
@@ -30,7 +31,8 @@ class ExtendedM3uParser extends BaseM3uParser {
                 MasterPlaylistLineParser.EXT_X_STREAM_INF,
                 MasterPlaylistLineParser.EXT_X_I_FRAME_STREAM_INF,
                 MediaPlaylistLineParser.EXTINF,
-                MediaPlaylistLineParser.EXT_X_ENDLIST
+                MediaPlaylistLineParser.EXT_X_ENDLIST,
+                MediaPlaylistLineParser.EXT_X_DISCONTINUITY
         );
     }
 

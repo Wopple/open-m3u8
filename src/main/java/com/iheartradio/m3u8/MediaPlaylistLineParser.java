@@ -114,6 +114,77 @@ class MediaPlaylistLineParser implements LineParser {
         }
     };
     
+
+    static final IExtTagParser EXT_X_PROGRAM_DATE_TIME = new IExtTagParser() {
+        private final LineParser lineParser = new MediaPlaylistLineParser(this);
+
+        @Override
+        public String getTag() {
+            return Constants.EXT_X_PROGRAM_DATE_TIME_TAG;
+        }
+
+        @Override
+        public boolean hasData() {
+            return true;
+        }
+        
+        @Override
+        public void parse(String line, ParseState state) throws ParseException {
+            lineParser.parse(line, state);
+
+            final Matcher matcher = ParseUtil.match(Constants.EXT_X_PROGRAM_DATE_TIME_PATTERN, line, getTag());
+
+            if (state.getMedia().programDateTime != null) {
+                throw ParseException.create(ParseExceptionType.MULTIPLE_EXT_TAG_INSTANCES, getTag(), line);
+            }
+
+            state.getMedia().programDateTime = ParseUtil.parseDateTime(line,getTag());
+        }
+    };
+    
+    static final IExtTagParser EXT_X_START = new IExtTagParser() {
+        private final LineParser lineParser = new MediaPlaylistLineParser(this);
+        private final Map<String, AttributeParser<StartData.Builder>> HANDLERS = new HashMap<>();
+        
+        {
+            HANDLERS.put(Constants.TIME_OFFSET, new AttributeParser<StartData.Builder>() {
+                @Override
+                public void parse(Attribute attribute, StartData.Builder builder, ParseState state) throws ParseException {
+                    builder.withTimeOffset(ParseUtil.parseFloat(attribute.value, getTag()));
+                }
+            });
+            
+            HANDLERS.put(Constants.PRECISE, new AttributeParser<StartData.Builder>() {
+                @Override
+                public void parse(Attribute attribute, StartData.Builder builder, ParseState state) throws ParseException {
+                    builder.withPrecise(ParseUtil.parseYesNo(attribute, getTag()));
+                }
+            });
+        }
+
+        @Override
+        public String getTag() {
+            return Constants.EXT_X_START_TAG;
+        }
+
+        @Override
+        public boolean hasData() {
+            return true;
+        }
+        
+        @Override
+        public void parse(String line, ParseState state) throws ParseException {
+            lineParser.parse(line, state);
+
+            final StartData.Builder builder = new StartData.Builder();
+            ParseUtil.parseAttributes(line, builder, state, HANDLERS, getTag());
+            final StartData startData = builder.build();
+
+            state.getMedia().setStartData(startData);
+        }
+    };
+    
+
     static final IExtTagParser EXT_X_TARGETDURATION = new IExtTagParser() {
         private final LineParser lineParser = new MediaPlaylistLineParser(this);
 
@@ -211,6 +282,27 @@ class MediaPlaylistLineParser implements LineParser {
             final Matcher matcher = ParseUtil.match(Constants.EXTINF_PATTERN, line, getTag());
 
             state.getMedia().trackInfo = new TrackInfo(ParseUtil.parseFloat(matcher.group(1), getTag()), matcher.group(2));
+        }
+    };
+
+    static final IExtTagParser EXT_X_DISCONTINUITY = new IExtTagParser() {
+        private final LineParser lineParser = new MediaPlaylistLineParser(this);
+
+        @Override
+        public String getTag() {
+            return Constants.EXT_X_DISCONTINUITY_TAG;
+        }
+
+        @Override
+        public boolean hasData() {
+            return false;
+        }
+
+        @Override
+        public void parse(String line, ParseState state) throws ParseException {
+            lineParser.parse(line, state);
+            final Matcher matcher = ParseUtil.match(Constants.EXT_X_DISCONTINUITY_PATTERN, line, getTag());
+            state.getMedia().hasDiscontinuity = true;
         }
     };
 
